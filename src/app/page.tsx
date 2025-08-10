@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { format, parseISO, setHours, setMinutes, startOfDay } from 'date-fns';
 import Image from 'next/image';
 import FileUpload from '@/components/FileUpload';
+import { parseDocument } from '@/utils/fileParser';
 
 interface TravelDocument {
   id: string;
@@ -16,21 +18,25 @@ export default function Home() {
   const [documents, setDocuments] = useState<TravelDocument[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
+  const [parsingId, setParsingId] = useState<string | null>(null);
 
   const handleFileAdded = (file: File) => {
     const documentId = crypto.randomUUID();
     
-    // Create document entry with default values
+    // Create document entry with default values (today at 10 AM local time)
+    const today = new Date();
+    const todayAt10AM = setHours(setMinutes(startOfDay(today), 0), 10);
+    
     const newDocument: TravelDocument = {
       id: documentId,
       file: file,
       displayName: file.name,
-      customDateTime: new Date().toISOString(),
+      customDateTime: todayAt10AM.toISOString(),
       uploadedAt: new Date(),
     };
 
     setDocuments(prev => [...prev, newDocument].sort((a, b) => 
-      new Date(a.customDateTime).getTime() - new Date(b.customDateTime).getTime()
+      parseISO(a.customDateTime).getTime() - parseISO(b.customDateTime).getTime()
     ));
   };
 
@@ -38,7 +44,7 @@ export default function Home() {
     setDocuments(prev => prev.map(doc => 
       doc.id === id ? { ...doc, ...updates } : doc
     ).sort((a, b) => 
-      new Date(a.customDateTime).getTime() - new Date(b.customDateTime).getTime()
+      parseISO(a.customDateTime).getTime() - parseISO(b.customDateTime).getTime()
     ));
   };
 
@@ -46,35 +52,46 @@ export default function Home() {
     setDocuments(prev => prev.filter(doc => doc.id !== id));
   };
 
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  const parseDocumentData = async (doc: TravelDocument) => {
+    setParsingId(doc.id);
+    
+    try {
+      const result = await parseDocument(doc.file);
+      
+      if (result.success && result.data) {
+        const updates: Partial<TravelDocument> = {
+          displayName: result.data.documentName,
+        };
+        
+        // Update datetime if timestamp was found
+        if (result.data.timestamp) {
+          updates.customDateTime = result.data.timestamp;
+        }
+        
+        updateDocument(doc.id, updates);
+      } else {
+        alert(`Failed to parse document: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error parsing document:', error);
+      alert('An error occurred while parsing the document');
+    } finally {
+      setParsingId(null);
+    }
   };
+
+
 
   const formatDateTime = (dateTime: string): string => {
     try {
-      const date = new Date(dateTime);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
+      const date = parseISO(dateTime);
+      return format(date, 'MMM d, yyyy h:mm a');
     } catch {
       return dateTime;
     }
   };
 
-  const getFileIcon = (fileType: string) => {
-    if (fileType.includes('pdf')) return '📄';
-    if (fileType.includes('image')) return '🖼️';
-    if (fileType.includes('word') || fileType.includes('document')) return '📝';
-    return '📎';
-  };
+
 
   const openFilePreview = (file: File) => {
     if (file.type.includes('image')) {
@@ -145,17 +162,7 @@ export default function Home() {
                     
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                                                 {/* File info */}
-                         <div className="flex items-center space-x-3 mb-4">
-                           <span className="text-2xl">{getFileIcon(doc.file.type)}</span>
-                           <div className="flex-1">
-                             <div className="flex items-center space-x-2">
-                               <span className="text-sm text-gray-500">
-                                 {formatFileSize(doc.file.size)}
-                               </span>
-                             </div>
-                           </div>
-                         </div>
+                        
 
                         {/* Editable name */}
                         <div className="mb-4">
@@ -179,21 +186,30 @@ export default function Home() {
                           )}
                         </div>
 
-                        {/* Editable datetime */}
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Date & Time
-                          </label>
-                          <input
-                            type="datetime-local"
-                            value={doc.customDateTime.slice(0, 16)}
-                            onChange={(e) => updateDocument(doc.id, { customDateTime: new Date(e.target.value).toISOString() })}
-                            className="text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            {formatDateTime(doc.customDateTime)}
-                          </p>
-                        </div>
+                                                 {/* Date display */}
+                         <div className="mb-4">
+                           <h4 className="text-lg font-medium text-gray-900 mb-2">
+                             {formatDateTime(doc.customDateTime)}
+                           </h4>
+                         </div>
+
+                         {/* Editable date */}
+                         <div className="mb-4">
+                           <label className="block text-sm font-medium text-gray-700 mb-1">
+                             Date
+                           </label>
+                           <input
+                             type="date"
+                             value={doc.customDateTime.slice(0, 10)}
+                             onChange={(e) => {
+                               const currentDateTime = parseISO(doc.customDateTime);
+                               const newDate = parseISO(e.target.value);
+                               const updatedDateTime = setHours(setMinutes(newDate, currentDateTime.getMinutes()), currentDateTime.getHours());
+                               updateDocument(doc.id, { customDateTime: updatedDateTime.toISOString() });
+                             }}
+                             className="w-full text-sm text-gray-900 bg-gray-50 border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           />
+                         </div>
 
                         {/* Action buttons */}
                         <div className="flex items-center space-x-3">
@@ -206,6 +222,29 @@ export default function Home() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
                             View
+                          </button>
+                          
+                          <button
+                            onClick={() => parseDocumentData(doc)}
+                            disabled={parsingId === doc.id}
+                            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {parsingId === doc.id ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Parsing...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                </svg>
+                                Parse
+                              </>
+                            )}
                           </button>
                           
                           <button
