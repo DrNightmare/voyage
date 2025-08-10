@@ -1,36 +1,152 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Travel Document Timeline
+
+A beautiful, user-friendly web application for organizing travel documents in a timeline format. Built with Next.js, TypeScript, and Tailwind CSS.
+
+## Features
+
+- **Drag & Drop File Upload**: Intuitive drag-and-drop interface for uploading travel documents
+- **File Browser Selection**: Traditional file picker for users who prefer clicking
+- **Timeline Interface**: Beautiful card-based timeline layout for organizing documents
+- **Editable Document Names**: Click to edit document names inline
+- **Custom Date/Time**: Set custom dates and times for each document
+- **Document Preview**: View images in a modal, PDFs in new tabs, and download other files
+- **File Type Icons**: Visual indicators for different file types (PDF, images, documents)
+- **File Validation**: Automatic validation of file types and sizes
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **TypeScript**: Full type safety throughout the application
+- **Production Ready**: ESLint configuration, proper error handling, and modern React patterns
+
+## Supported File Types
+
+### For Upload & Display:
+- PDF documents (`application/pdf`)
+- Images (JPEG, PNG, JPG)
+- Word documents (DOC, DOCX)
+
+### For AI Parsing:
+- Text files (`text/plain`)
+- PDF documents (`application/pdf`)
+- Word documents (DOC, DOCX)
+- CSV files (`text/csv`)
+- JSON files (`application/json`)
+
+## File Size Limits
+
+- Maximum file size: 25MB per document
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone <repository-url>
+cd voyage
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Run the development server:
+```bash
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Learn More
+### Available Scripts
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build the application for production
+- `npm run start` - Start the production server
+- `npm run lint` - Run ESLint to check code quality
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/
+│   ├── layout.tsx          # Root layout with metadata
+│   ├── page.tsx            # Main application page
+│   └── globals.css         # Global styles
+├── components/
+│   └── FileUpload.tsx      # Reusable file upload component
+└── ...
+```
 
-## Deploy on Vercel
+## Technology Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Framework**: Next.js 15 with App Router
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Linting**: ESLint with Next.js configuration
+- **Build Tool**: Turbopack (development)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Development
+
+### Code Quality
+
+The project uses ESLint with Next.js configuration for code quality. Run `npm run lint` to check for issues.
+
+### TypeScript
+
+Full TypeScript support with strict type checking. All components and functions are properly typed.
+
+### Component Architecture
+
+- **FileUpload**: Reusable component with drag-and-drop functionality
+- **Main Page**: Container component managing timeline state and display
+- **Timeline Cards**: Individual document cards with editing capabilities
+
+### User Interface Features
+
+- **Timeline Layout**: Beautiful vertical timeline with connecting lines
+- **Inline Editing**: Click to edit document names and dates
+- **File Preview**: Modal for images, new tabs for PDFs, download for others
+- **File Type Icons**: Visual indicators for different document types
+- **Responsive Design**: Works on all device sizes
+
+## Production Deployment
+
+The application is ready for production deployment on platforms like:
+
+- Vercel (recommended for Next.js)
+- Netlify
+- AWS Amplify
+- Any platform supporting Node.js
+
+### Build for Production
+
+```bash
+npm run build
+npm run start
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Run tests and linting
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Future Enhancements
+
+- File preview functionality
+- Document categorization
+- Search and filtering
+- Cloud storage integration
+- User authentication
+- Document sharing
+- Mobile app version
