@@ -40,7 +40,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
   const handleFile = useCallback(
     async (file: File) => {
       setIsProcessing(true);
-      
+
       try {
         const validation = validateFile(file);
         if (!validation.isValid) {
@@ -105,8 +105,8 @@ const FileUpload: React.FC<FileUploadProps> = ({
       <div
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all duration-200
-          ${isDragOver 
-            ? 'border-blue-500 bg-blue-50' 
+          ${isDragOver
+            ? 'border-blue-500 bg-blue-50'
             : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
           }
           ${isProcessing ? 'opacity-50 pointer-events-none' : ''}
@@ -123,7 +123,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
           onChange={handleFileInputChange}
           accept={acceptedFileTypes.join(',')}
         />
-        
+
         <div className="space-y-4">
           <div className="flex justify-center">
             <svg
@@ -141,7 +141,7 @@ const FileUpload: React.FC<FileUploadProps> = ({
               />
             </svg>
           </div>
-          
+
           <div>
             <p className="text-lg font-medium text-gray-900">
               {isDragOver ? 'Drop your file here' : 'Upload your travel document'}
